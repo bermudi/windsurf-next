@@ -1,0 +1,18 @@
+pkgbase = windsurf-next
+	pkgdesc = Windsurf-next - Next version of the Windsurf editor
+	pkgver = 1.2.107_next
+	pkgrel = 1
+	url = https://windsurf-next.codeium.com
+	arch = x86_64
+	license = Custom
+	makedepends = curl
+	makedepends = jq
+	depends = vulkan-driver
+	depends = ffmpeg
+	depends = glibc
+	depends = libglvnd
+	options = !strip
+	source = windsurf-next.tar.gz::https://windsurf-stable.codeiumdata.com/linux-x64/next/5adb09289276b54b6948d777bd664efb7e4d4113/Windsurf-linux-x64-1.2.107-next.tar.gz
+	sha256sums = SKIP
+
+pkgname = windsurf-next
