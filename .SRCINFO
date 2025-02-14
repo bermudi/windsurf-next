@@ -12,7 +12,7 @@ pkgbase = windsurf-next
 	depends = glibc
 	depends = libglvnd
 	options = !strip
-	source = windsurf-next.tar.gz::https://windsurf-stable.codeiumdata.com/linux-x64/next/5adb09289276b54b6948d777bd664efb7e4d4113/Windsurf-linux-x64-1.2.109-next.tar.gz
+	source = windsurf-next-1.2.109_next.tar.gz::https://windsurf-stable.codeiumdata.com/linux-x64/next/5adb09289276b54b6948d777bd664efb7e4d4113/Windsurf-linux-x64-1.2.109-next.tar.gz
 	sha256sums = SKIP
 
 pkgname = windsurf-next
