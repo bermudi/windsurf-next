@@ -22,7 +22,7 @@ pkgver() {
 }
 
 source=(
-    "$pkgname-$pgkver.tar.gz::$(curl -s "https://windsurf-next.codeium.com/api/update/linux-x64/next/latest" | jq -r '.url')"
+    "$pkgname-$pkgver.tar.gz::$(curl -s "https://windsurf-next.codeium.com/api/update/linux-x64/next/latest" | jq -r '.url')"
 )
 sha256sums=('SKIP')
 
