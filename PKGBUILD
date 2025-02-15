@@ -1,7 +1,7 @@
 # Maintainer: Webarch <contact@webarch.ro>
 pkgname=windsurf-next
 pkgver=1.3.101_next
-pkgrel=2
+pkgrel=3
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://codeium.com"
@@ -32,7 +32,7 @@ prepare() {
     local expected_sha256
     expected_sha256=$(echo "$api_response" | jq -r '.sha256hash')
     echo "Verifying SHA256 hash..."
-    echo "$expected_sha256 $srcdir/$pkgname.tar.gz" | sha256sum -c
+    echo "$expected_sha256 $srcdir/$pkgname-$pkgver.tar.gz" | sha256sum -c
 }
 
 package() {
