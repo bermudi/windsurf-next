@@ -1,7 +1,7 @@
 # Maintainer: Webarch <contact@webarch.ro>
 pkgname=windsurf-next
 pkgver=1.6.106_next
-pkgrel=1
+pkgrel=2
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://codeium.com"
@@ -62,6 +62,7 @@ package() {
     
     # Install desktop entry
     install -Dm644 /dev/null "$pkgdir/usr/share/applications/$pkgname.desktop"
+
     cat > "$pkgdir/usr/share/applications/$pkgname.desktop" << EOF
 [Desktop Entry]
 Name=Windsurf Next
@@ -71,5 +72,6 @@ Icon=/opt/$pkgname/resources/app/resources/linux/code-next.png
 Terminal=false
 Type=Application
 Categories=Development;TextEditor;
+StartupWMClass=Windsurf - Next
 EOF
 }

@@ -1,7 +1,7 @@
 pkgbase = windsurf-next
 	pkgdesc = Windsurf-next - Next version of the Windsurf editor
 	pkgver = 1.6.106_next
-	pkgrel = 1
+	pkgrel = 2
 	url = https://codeium.com
 	arch = x86_64
 	license = Custom
