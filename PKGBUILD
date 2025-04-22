@@ -1,6 +1,6 @@
 # Maintainer: Webarch <contact@webarch.ro>
 pkgname=windsurf-next
-pkgver=1.7.100_next
+pkgver=1.7.101_next.2c96938a0b
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')

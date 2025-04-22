@@ -1,6 +1,6 @@
 pkgbase = windsurf-next
 	pkgdesc = Windsurf-next - Next version of the Windsurf editor
-	pkgver = 1.7.100_next
+	pkgver = 1.7.101_next.2c96938a0b
 	pkgrel = 1
 	url = https://codeium.com
 	arch = x86_64
@@ -12,7 +12,7 @@ pkgbase = windsurf-next
 	depends = glibc
 	depends = libglvnd
 	options = !strip
-	source = windsurf-next-1.7.100_next.tar.gz::https://windsurf-stable.codeiumdata.com/linux-x64/next/69a900001328c5e276063fc33dcff89076073a54/Windsurf-linux-x64-1.7.100+next.69a9000013.tar.gz
+	source = windsurf-next-1.7.101_next.2c96938a0b.tar.gz::https://windsurf-stable.codeiumdata.com/linux-x64/next/2c96938a0b9e7ad16a158266b183f4bd7113c154/Windsurf-linux-x64-1.7.101+next.2c96938a0b.tar.gz
 	sha256sums = SKIP
 
 pkgname = windsurf-next
