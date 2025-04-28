@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Windsurf Next
+Comment=Windsurf Editor (Next Version)
+Exec=/opt/windsurf-next/windsurf-next %U
+Icon=/opt/windsurf-next/resources/app/resources/linux/code-next.png
+Terminal=false
+Type=Application
+Categories=Development;TextEditor;
+StartupWMClass=Windsurf - Next
