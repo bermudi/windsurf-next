@@ -5,6 +5,14 @@ pkgbase = windsurf-next
 	url = https://codeium.com
 	arch = x86_64
 	license = Custom
+	makedepends = curl
+	makedepends = jq
+	depends = vulkan-driver
+	depends = ffmpeg
+	depends = glibc
+	depends = libglvnd
 	options = !strip
+	source = https://windsurf-stable.codeiumdata.com/linux-x64/next/619323b3cdd4a88a75f3b5fa39dba02c3b9e14a9/Windsurf-linux-x64-1.7.103+next.619323b3cd.tar.gz
+	sha256sums = 5a3c420584d1b4683d9e381631d8d2d9162026090a9778f59f786308be775ce3
 
 pkgname = windsurf-next
