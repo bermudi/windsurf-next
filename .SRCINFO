@@ -11,8 +11,14 @@ pkgbase = windsurf-next
 	depends = ffmpeg
 	depends = glibc
 	depends = libglvnd
+	depends = gtk3
+	depends = alsa-lib
+	provides = windsurf-next
+	conflicts = windsurf-next
 	options = !strip
-	source = https://windsurf-stable.codeiumdata.com/linux-x64/next/619323b3cdd4a88a75f3b5fa39dba02c3b9e14a9/Windsurf-linux-x64-1.7.103+next.619323b3cd.tar.gz
+	source = windsurf-next_1.7.103_next.619323b3cd_linux-x64::https://windsurf-stable.codeiumdata.com/linux-x64/next/619323b3cdd4a88a75f3b5fa39dba02c3b9e14a9/Windsurf-linux-x64-1.7.103+next.619323b3cd.tar.gz
+	source = windsurf-next.desktop
 	sha256sums = 5a3c420584d1b4683d9e381631d8d2d9162026090a9778f59f786308be775ce3
+	sha256sums = 0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a
 
 pkgname = windsurf-next
