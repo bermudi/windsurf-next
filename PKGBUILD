@@ -1,5 +1,5 @@
 # Maintainer: Webarch <contact@webarch.ro>
-# Generated on: 2025-05-05 16:58:44 UTC
+# Generated on: 2025-05-05 16:59:16 UTC
 
 pkgname=windsurf-next
 pkgver=1.8.102_next.ac2f9318a9
