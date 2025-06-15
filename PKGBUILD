@@ -1,73 +1,49 @@
-# Maintainer: Webarch <contact@webarch.ro>
-# Generated on: 2025-06-10 23:29:55 UTC
+# Contributor: Webarch <contact at webarch dot ro>
 
 pkgname=windsurf-next
-pkgver=1.10.103_next.1c62a60cfa
+pkgver=1.10.105+next.c1afeb8ae2
 pkgrel=1
-pkgdesc="Windsurf-next - Next version of the Windsurf editor"
+pkgdesc='Next version of the Windsurf editor'
 arch=('x86_64')
 url="https://windsurf.com"
-license=('Custom')
-depends=(
-    'vulkan-driver'
-    'ffmpeg'
-    'glibc'
-    'libglvnd'
-    'gtk3'
-    'alsa-lib'
+license=('LicenseRef-Windsurf Editor')
+_electron=electron
+depends=( ripgrep fd xdg-utils $_electron #replacements
+ alsa-lib
+ dbus
+ gnupg
+ libnotify
+ libsecret
+ libxkbfile
+ libxss
 )
-makedepends=('curl' 'jq')
-optdepends=(
-    'bash-completion: for bash shell completions'
-    'zsh: for zsh shell completions'
-)
-provides=("$pkgname")
-conflicts=("$pkgname")
-options=('!strip')
-
-# Use a variable for the downloaded filename for clarity
-_pkgfilename="windsurf-next_1.10.103_next.1c62a60cfa_linux-x64"
-
-source=(
-    # Download the main binary, renaming it using :: syntax
-    "$_pkgfilename::https://windsurf-stable.codeiumdata.com/linux-x64/next/1c62a60cfa8be3ea8c2f98e0b2e3440d30b508dd/Windsurf-linux-x64-1.10.103+next.1c62a60cfa.tar.gz"
-    # Include the local .desktop file
-    'windsurf-next.desktop'
-)
-sha256sums=('683f023b5ab1902556d65eac6b2e10e1312ce775b4cb095ce77216d825848b10'
-            '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-           )
+options=(!strip) # for sign of ext
+source=(windsurf-next.desktop # .deb should have it
+"https://gitlab.archlinux.org/archlinux/packaging/packages/code/-/raw/main/code.sh"
+"https://windsurf-stable.codeiumdata.com/linux-x64/next/c1afeb8ae2b17dbdda415f9aa5dec23422c1fe47/Windsurf-linux-x64-${pkgver}.tar.gz")
+sha256sums=('13b96b1499830a08b51e54d8c3548c0410f0dbb58fcf4767115a902c6bd87c7c'
+'5da1525b5fe804b9192c05e1cbf8d751d852e3717fb2787c7ffe98fd5d93e8c1'
+'828e05fec12fcf025126959764c033ebc4ef954c9ab0419f8e8eac1d327cafef')
 
 package() {
-    cd "$srcdir"
-
-    # Extract the tarball to a temporary directory
-    mkdir -p windsurf-extract
-    tar -xzf "$_pkgfilename" -C windsurf-extract --strip-components=1
-    
-    # Create the target directory in /opt
-    install -dm755 "$pkgdir/opt/$pkgname"
-    
-    # Copy all files to the target directory
-    cp -r windsurf-extract/* "$pkgdir/opt/$pkgname/"
-    
-    # Create symlink for the executable
-    install -dm755 "$pkgdir/usr/bin"
-    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
-
-    # Install the desktop entry file
-    install -Dm644 "$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
-
-    # Install bash completion
-    install -Dm644 "windsurf-extract/resources/completions/bash/$pkgname" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
-    
-    # Install zsh completion
-    install -Dm644 "windsurf-extract/resources/completions/zsh/_$pkgname" "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
-    
-    # Install icon
-    install -Dm644 "windsurf-extract/resources/app/resources/linux/code-next.png" "$pkgdir/usr/share/pixmaps/$pkgname.png"
-    
-    # Fix permissions
-    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
-    chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
+  install -d "${pkgdir}"/usr/lib
+  # Electron app
+  mv Windsurf/resources/app "${pkgdir}"/usr/lib/$pkgname
+  # System tools
+  _app=/usr/lib/$pkgname
+  sed -e "s|code-flags|windsurf-flags|" \
+    -e "s|/usr/lib/code/out/cli.js|${_app}/out/cli.js|" \
+    -e "s|/usr/lib/code/code.mjs|--app=${_app}|" code.sh > run.sh
+  install -Dm755 run.sh "${pkgdir}"/usr/bin/$pkgname
+  ln -svf /usr/bin/rg "${pkgdir}"/usr/lib/${pkgname}/node_modules/@vscode/ripgrep/bin/rg
+  ln -svf /usr/bin/xdg-open "${pkgdir}"/usr/lib/${pkgname}/node_modules/open/xdg-open
+  ln -svf /usr/bin/fd "${pkgdir}"/usr/lib/${pkgname}/extensions/windsurf/bin/fd
+  # desktop entry
+  install -Dm644 ${pkgname}.desktop "${pkgdir}"/usr/share/applications/${pkgname}.desktop
+  # shell completions
+  install -Dm644 Windsurf/resources/completions/bash/$pkgname "${pkgdir}"/usr/share/bash-completion/completions/$pkgname
+  install -Dm644 Windsurf/resources/completions/zsh/_$pkgname "${pkgdir}"/usr/share/zsh/site-functions/_$pkgname
+  # No correct SVG for -next...
+  install -d "${pkgdir}"/usr/share/pixmaps
+  ln -sf /usr/lib/${pkgname}/resources/linux/code-next.png "${pkgdir}"/usr/share/pixmaps/
 }
