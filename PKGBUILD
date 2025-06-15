@@ -1,7 +1,8 @@
 # Contributor: Webarch <contact at webarch dot ro>
 
 pkgname=windsurf-next
-pkgver=1.10.105+next.c1afeb8ae2
+_api=https://windsurf-next.codeium.com/api/update/linux-x64/next
+pkgver=$(curl -Ls "$_api"|grep -oP '"windsurfVersion":"\K[^"]+')
 pkgrel=1
 pkgdesc='Next version of the Windsurf editor'
 arch=('x86_64')
@@ -20,11 +21,11 @@ depends=( ripgrep fd xdg-utils $_electron #replacements
 options=(!strip) # for sign of ext
 source=(windsurf-next.desktop # .deb should have it
 "https://gitlab.archlinux.org/archlinux/packaging/packages/code/-/raw/main/code.sh"
-"https://windsurf-stable.codeiumdata.com/linux-x64/next/c1afeb8ae2b17dbdda415f9aa5dec23422c1fe47/Windsurf-linux-x64-${pkgver}.tar.gz")
+"https://windsurf-stable.codeiumdata.com/linux-x64/next/$(curl -Ls "$_api"|grep -oP '"version":"\K[^"]+')/Windsurf-linux-x64-${pkgver}.tar.gz")
+
 sha256sums=('13b96b1499830a08b51e54d8c3548c0410f0dbb58fcf4767115a902c6bd87c7c'
 '5da1525b5fe804b9192c05e1cbf8d751d852e3717fb2787c7ffe98fd5d93e8c1'
-'828e05fec12fcf025126959764c033ebc4ef954c9ab0419f8e8eac1d327cafef')
-
+$(curl -Ls "$_api"|grep -oP '"sha256hash":"\K[^"]+'))
 package() {
   install -d "${pkgdir}"/usr/lib
   # Electron app
