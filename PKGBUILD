@@ -1,7 +1,7 @@
 # Contributor: Webarch <contact at webarch dot ro>
 
 pkgname=windsurf-next
-_api=https://windsurf-next.codeium.com/api/update/linux-x64/next
+_api=https://windsurf-next.codeium.com/api/update/linux-x64
 pkgver=$(curl -Ls "$_api"|grep -oP '"windsurfVersion":"\K[^"]+')
 pkgrel=1
 pkgdesc='Next version of the Windsurf editor'
