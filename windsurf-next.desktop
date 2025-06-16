@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Windsurf Next
-Exec=/usr/lib/windsurf-next %U
+Exec=windsurf-next %U
 Icon=code-next
 Terminal=false
 Type=Application
