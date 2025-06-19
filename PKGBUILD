@@ -24,8 +24,7 @@ source=(windsurf-next.desktop # .deb should have it
 "https://windsurf-stable.codeiumdata.com/linux-x64/next/$(curl -Ls "$_api"|grep -oP '"version":"\K[^"]+')/Windsurf-linux-x64-${pkgver}.tar.gz")
 
 sha256sums=('f5761327c230d9486765ce8367d71801b40675143f09bd1419117667d9e3d79b'
-            '5da1525b5fe804b9192c05e1cbf8d751d852e3717fb2787c7ffe98fd5d93e8c1'
-            '828e05fec12fcf025126959764c033ebc4ef954c9ab0419f8e8eac1d327cafef')
+ 'SKIP' 'SKIP') # same with -git
 package() {
   install -d "${pkgdir}"/usr/lib
   # Electron app
