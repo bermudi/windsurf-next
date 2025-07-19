@@ -20,7 +20,9 @@ pkgbase = windsurf-next
 	options = !strip
 	source = windsurf-next_1.11.101_next.7ebe3c84f4_linux-x64::https://windsurf-stable.codeiumdata.com/linux-x64/next/7ebe3c84f46e15cc83584023b53a4988df13f475/Windsurf-linux-x64-1.11.101+next.7ebe3c84f4.tar.gz
 	source = windsurf-next.desktop
+	source = windsurf-next-url-handler.desktop
 	sha256sums = ae383ca214a9f2bd7c4e4c113ad880b1c15ffc05a9c3408f1bc5df3bd7881dad
 	sha256sums = 0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a
+	sha256sums = 7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2
 
 pkgname = windsurf-next

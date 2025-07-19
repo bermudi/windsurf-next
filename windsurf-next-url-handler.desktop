@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Windsurf Next - URL Handler
+Comment=Windsurf Editor (Next Version)
+GenericName=Text Editor
+Exec=/opt/windsurf-next/windsurf-next --open-url %U
+Icon=/opt/windsurf-next/resources/app/resources/linux/code-next.png
+Type=Application
+NoDisplay=true
+StartupNotify=true
+Categories=Utility;TextEditor;Development;IDE;
+MimeType=x-scheme-handler/windsurf-next;
+Keywords=windsurf-next;
