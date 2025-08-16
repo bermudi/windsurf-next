@@ -1,8 +1,8 @@
 # Maintainer: Webarch <contact@webarch.ro>
-# Generated on: 2025-08-14 21:14:03 UTC
+# Generated on: 2025-08-16 13:51:22 UTC
 
 pkgname=windsurf-next
-pkgver=1.12.103_next.e440e8d968
+pkgver=1.12.105_next.b8f002c02d
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
@@ -26,17 +26,17 @@ conflicts=("$pkgname")
 options=('!strip')
 
 # Use a variable for the downloaded filename for clarity
-_pkgfilename="windsurf-next_1.12.103_next.e440e8d968_linux-x64"
+_pkgfilename="windsurf-next_1.12.105_next.b8f002c02d_linux-x64"
 
 source=(
     # Download the main binary, renaming it using :: syntax
-    "$_pkgfilename::https://windsurf-stable.codeiumdata.com/linux-x64/next/e440e8d9688b140014ae4ca0477d73dbd4427164/Windsurf-linux-x64-1.12.103+next.e440e8d968.tar.gz"
+    "$_pkgfilename::https://windsurf-stable.codeiumdata.com/linux-x64/next/b8f002c02d165600299a109bf21d02d139c52644/Windsurf-linux-x64-1.12.105+next.b8f002c02d.tar.gz"
     # Include the local .desktop file
     'windsurf-next.desktop'
     # Include the URL handler .desktop file
     'windsurf-next-url-handler.desktop'
 )
-sha256sums=('2ddc3f5e36f9d61e900d509a6b43163654f602f634e9132e6eeb0d9131b3db61'
+sha256sums=('d38eb0354678142a0151160301de517cae17e52b546ec314b27d403bddff7803'
             '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
             '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
            )
