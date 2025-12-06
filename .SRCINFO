@@ -1,12 +1,11 @@
 pkgbase = windsurf-next
 	pkgdesc = Windsurf-next - Next version of the Windsurf editor
-	pkgver = 1.12.153_next.9472213c2b
+	pkgver = 1.12.157_next.10ebfa84f4
 	pkgrel = 1
 	url = https://windsurf.com
 	arch = x86_64
-	license = Custom
+	license = custom
 	makedepends = curl
-	makedepends = jq
 	depends = vulkan-driver
 	depends = ffmpeg
 	depends = glibc
@@ -18,10 +17,10 @@ pkgbase = windsurf-next
 	provides = windsurf-next
 	conflicts = windsurf-next
 	options = !strip
-	source = windsurf-next_1.12.153_next.9472213c2b_linux-x64::https://windsurf-stable.codeiumdata.com/linux-x64/next/9472213c2b01d64c024e510cd6fe81abd9b16fb7/Windsurf-linux-x64-1.12.153+next.9472213c2b.tar.gz
+	source = windsurf-next_1.12.157_next.10ebfa84f4.deb::https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt/pool/main/w/windsurf-next/Windsurf-linux-x64-1.12.157+next.10ebfa84f4.deb
 	source = windsurf-next.desktop
 	source = windsurf-next-url-handler.desktop
-	sha256sums = 2032a51ae6f5b8e9adc27ff8cf13039e240cfa168bbb44de2463c56cd0444742
+	sha256sums = a3430e8252526182ed4ae1ee9697008bba36fed216954be97af307a2ed16e7ca
 	sha256sums = 0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a
 	sha256sums = 7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2
 

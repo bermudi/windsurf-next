@@ -1,0 +1,228 @@
+name: Update PKGBUILD
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'New package version in Arch format'
+        required: true
+        type: string
+      sha256:
+        description: 'SHA256 checksum of the .deb file'
+        required: true
+        type: string
+  
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New package version in Arch format (e.g., 1.12.157_next.10ebfa84f4)'
+        required: true
+        type: string
+      sha256:
+        description: 'SHA256 checksum of the .deb file'
+        required: true
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update PKGBUILD
+        run: |
+          NEW_VERSION="${{ inputs.version }}"
+          NEW_SHA256="${{ inputs.sha256 }}"
+          
+          echo "Updating PKGBUILD to version $NEW_VERSION"
+          
+          # Update pkgver
+          sed -i "s/^pkgver=.*/pkgver=$NEW_VERSION/" PKGBUILD
+          
+          # Reset pkgrel to 1
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          
+          # Get the desktop file checksums (keep them unchanged)
+          desktop_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -2 | head -1 | tr -d " '")
+          handler_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -1 | tr -d " '") 
+          
+          # Rebuild sha256sums array with new deb checksum
+          cat > PKGBUILD.tmp << EOF
+          pkgname=windsurf-next
+          pkgver=$NEW_VERSION
+          pkgrel=1
+          pkgdesc="Windsurf-next - Next version of the Windsurf editor"
+          arch=('x86_64')
+          url="https://windsurf.com"
+          license=('custom')
+          
+          _apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
+          _upstream_ver="\${pkgver//_/+}"
+          _debfile="Windsurf-linux-x64-\${_upstream_ver}.deb"
+          
+          depends=(
+              'vulkan-driver'
+              'ffmpeg'
+              'glibc'
+              'libglvnd'
+              'gtk3'
+              'alsa-lib'
+          )
+          makedepends=('curl')
+          optdepends=(
+              'bash-completion: for bash shell completions'
+              'zsh: for zsh shell completions'
+          )
+          provides=("windsurf-next")
+          conflicts=("windsurf-next")
+          options=('!strip')
+          
+          source=(
+              "windsurf-next-\${pkgver}.deb::\${_apt_base}/pool/main/w/windsurf-next/\${_debfile}"
+              'windsurf-next.desktop'
+              'windsurf-next-url-handler.desktop'
+          )
+          
+          sha256sums=('$NEW_SHA256'
+                      '$desktop_sha'
+                      '$handler_sha')
+          
+          prepare() {
+              cd "\$srcdir"
+              mkdir -p deb-extract
+              cd deb-extract
+              ar x "../windsurf-next-\${pkgver}.deb"
+              
+              mkdir -p data
+              if [[ -f data.tar.xz ]]; then
+                  tar -xf data.tar.xz -C data
+              elif [[ -f data.tar.zst ]]; then
+                  tar -xf data.tar.zst -C data
+              elif [[ -f data.tar.gz ]]; then
+                  tar -xf data.tar.gz -C data
+              fi
+          }
+          
+          package() {
+              cd "\$srcdir/deb-extract/data"
+              
+              install -dm755 "\$pkgdir/opt/windsurf-next"
+              cp -r usr/share/windsurf-next/* "\$pkgdir/opt/windsurf-next/"
+              
+              install -dm755 "\$pkgdir/usr/bin"
+              ln -sf "/opt/windsurf-next/windsurf-next" "\$pkgdir/usr/bin/windsurf-next"
+          
+              install -Dm644 "\$srcdir/windsurf-next.desktop" "\$pkgdir/usr/share/applications/windsurf-next.desktop"
+              install -Dm644 "\$srcdir/windsurf-next-url-handler.desktop" "\$pkgdir/usr/share/applications/windsurf-next-url-handler.desktop"
+          
+              if [[ -f "\$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" ]]; then
+                  install -Dm644 "\$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" \\
+                      "\$pkgdir/usr/share/bash-completion/completions/windsurf-next"
+              fi
+          
+              if [[ -f "\$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" ]]; then
+                  install -Dm644 "\$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" \\
+                      "\$pkgdir/usr/share/zsh/site-functions/_windsurf-next"
+              fi
+          
+              install -Dm644 "\$pkgdir/opt/windsurf-next/resources/app/resources/linux/code-next.png" \\
+                  "\$pkgdir/usr/share/pixmaps/windsurf-next.png"
+          
+              chmod 755 "\$pkgdir/opt/windsurf-next/windsurf-next"
+              chmod 4755 "\$pkgdir/opt/windsurf-next/chrome-sandbox"
+          }
+          EOF
+          
+          mv PKGBUILD.tmp PKGBUILD
+          echo "PKGBUILD updated successfully"
+      
+      - name: Generate .SRCINFO
+        run: |
+          echo "Generating .SRCINFO..."
+          
+          source PKGBUILD
+          
+          cat > .SRCINFO << EOF
+          pkgbase = $pkgname
+          pkgdesc = $pkgdesc
+          pkgver = $pkgver
+          pkgrel = $pkgrel
+          url = $url
+          arch = ${arch[0]}
+          license = $license
+          EOF
+          
+          for dep in "${makedepends[@]}"; do
+            echo "	makedepends = $dep" >> .SRCINFO
+          done
+          
+          for dep in "${depends[@]}"; do
+            echo "	depends = $dep" >> .SRCINFO
+          done
+          
+          for dep in "${optdepends[@]}"; do
+            echo "	optdepends = $dep" >> .SRCINFO
+          done
+          
+          echo "	provides = ${provides[0]}" >> .SRCINFO
+          echo "	conflicts = ${conflicts[0]}" >> .SRCINFO
+          echo "	options = ${options[0]}" >> .SRCINFO
+          
+          for src in "${source[@]}"; do
+            echo "	source = $src" >> .SRCINFO
+          done
+          
+          for sum in "${sha256sums[@]}"; do
+            echo "	sha256sums = $sum" >> .SRCINFO
+          done
+          
+          echo "" >> .SRCINFO
+          echo "pkgname = $pkgname" >> .SRCINFO
+          
+          echo ".SRCINFO generated"
+          cat .SRCINFO
+      
+      - name: Verify PKGBUILD
+        run: |
+          # Basic syntax check
+          if bash -n PKGBUILD; then
+            echo "PKGBUILD syntax is valid"
+          else
+            echo "PKGBUILD has syntax errors!"
+            exit 1
+          fi
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add PKGBUILD .SRCINFO
+          git commit -m "chore: Update to version ${{ inputs.version }}"
+          git push
+      
+      - name: Create release tag
+        run: |
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: "windsurf-next ${{ inputs.version }}"
+          body: |
+            Automated update to windsurf-next version ${{ inputs.version }}
+            
+            ## Changes
+            - Updated to latest version from APT repository
+            - SHA256: `${{ inputs.sha256 }}`
+            
+            ## Installation
+            See the main AUR package page for installation instructions.
+          draft: false
+          prerelease: false

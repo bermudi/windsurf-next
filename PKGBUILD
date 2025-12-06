@@ -1,13 +1,21 @@
 # Maintainer: Webarch <contact@webarch.ro>
-# Generated on: 2025-11-24 20:40:19 UTC
+# Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=1.12.153_next.9472213c2b
+pkgver=1.12.157_next.10ebfa84f4
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://windsurf.com"
-license=('Custom')
+license=('custom')
+
+# APT repository configuration
+_apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
+# Upstream version format: 1.12.157+next.10ebfa84f4 (from Packages file)
+_upstream_ver="${pkgver//_/+}"
+# Deb filename from APT pool
+_debfile="Windsurf-linux-x64-${_upstream_ver}.deb"
+
 depends=(
     'vulkan-driver'
     'ffmpeg'
@@ -16,62 +24,76 @@ depends=(
     'gtk3'
     'alsa-lib'
 )
-makedepends=('curl' 'jq')
+makedepends=('curl')
 optdepends=(
     'bash-completion: for bash shell completions'
     'zsh: for zsh shell completions'
 )
-provides=("$pkgname")
-conflicts=("$pkgname")
+provides=("windsurf-next")
+conflicts=("windsurf-next")
 options=('!strip')
 
-# Use a variable for the downloaded filename for clarity
-_pkgfilename="windsurf-next_1.12.153_next.9472213c2b_linux-x64"
-
 source=(
-    # Download the main binary, renaming it using :: syntax
-    "$_pkgfilename::https://windsurf-stable.codeiumdata.com/linux-x64/next/9472213c2b01d64c024e510cd6fe81abd9b16fb7/Windsurf-linux-x64-1.12.153+next.9472213c2b.tar.gz"
-    # Include the local .desktop file
+    "${pkgname}-${pkgver}.deb::${_apt_base}/pool/main/w/windsurf-next/${_debfile}"
     'windsurf-next.desktop'
-    # Include the URL handler .desktop file
     'windsurf-next-url-handler.desktop'
 )
-sha256sums=('2032a51ae6f5b8e9adc27ff8cf13039e240cfa168bbb44de2463c56cd0444742'
+
+sha256sums=('a3430e8252526182ed4ae1ee9697008bba36fed216954be97af307a2ed16e7ca'
             '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
-           )
+            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2')
+
+prepare() {
+    cd "$srcdir"
+    
+    # Extract the .deb file (ar archive)
+    mkdir -p deb-extract
+    cd deb-extract
+    ar x "../${pkgname}-${pkgver}.deb"
+    
+    # Extract the data archive (contains the actual files)
+    mkdir -p data
+    # Handle both .tar.xz and .tar.zst formats
+    if [[ -f data.tar.xz ]]; then
+        tar -xf data.tar.xz -C data
+    elif [[ -f data.tar.zst ]]; then
+        tar -xf data.tar.zst -C data
+    elif [[ -f data.tar.gz ]]; then
+        tar -xf data.tar.gz -C data
+    fi
+}
 
 package() {
-    cd "$srcdir"
-
-    # Extract the tarball to a temporary directory
-    mkdir -p windsurf-extract
-    tar -xzf "$_pkgfilename" -C windsurf-extract --strip-components=1
+    cd "$srcdir/deb-extract/data"
     
-    # Create the target directory in /opt
+    # The deb extracts to usr/share/windsurf-next/
+    # Copy all files to /opt for consistency with current package
     install -dm755 "$pkgdir/opt/$pkgname"
-    
-    # Copy all files to the target directory
-    cp -r windsurf-extract/* "$pkgdir/opt/$pkgname/"
+    cp -r usr/share/windsurf-next/* "$pkgdir/opt/$pkgname/"
     
     # Create symlink for the executable
     install -dm755 "$pkgdir/usr/bin"
     ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
-    # Install the desktop entry file
-    install -Dm644 "$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
-    
-    # Install the URL handler desktop entry file
-    install -Dm644 "$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
+    # Install the desktop entry files
+    install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
+    install -Dm644 "$srcdir/$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
     # Install bash completion
-    install -Dm644 "windsurf-extract/resources/completions/bash/$pkgname" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
+            "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+    fi
     
     # Install zsh completion
-    install -Dm644 "windsurf-extract/resources/completions/zsh/_$pkgname" "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
+            "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
+    fi
     
     # Install icon
-    install -Dm644 "windsurf-extract/resources/app/resources/linux/code-next.png" "$pkgdir/usr/share/pixmaps/$pkgname.png"
+    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+        "$pkgdir/usr/share/pixmaps/$pkgname.png"
     
     # Fix permissions
     chmod 755 "$pkgdir/opt/$pkgname/$pkgname"

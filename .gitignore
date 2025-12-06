@@ -1,0 +1,23 @@
+# AUR package build artifacts
+*.pkg.tar.xz
+*.pkg.tar.zst
+*.pkg.tar.gz
+*.deb
+
+# makepkg temporary files
+pkg/
+src/
+
+# macOS
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*~

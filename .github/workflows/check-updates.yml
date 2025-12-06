@@ -1,0 +1,73 @@
+name: Check for Updates
+
+on:
+  schedule:
+    # Run every 12 hours
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      has_update: ${{ steps.check.outputs.has_update }}
+      new_version: ${{ steps.check.outputs.new_version }}
+      sha256: ${{ steps.check.outputs.sha256 }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Get current version from PKGBUILD
+        id: current
+        run: |
+          current_version=$(grep "^pkgver=" PKGBUILD | cut -d'=' -f2)
+          echo "version=$current_version" >> $GITHUB_OUTPUT
+      
+      - name: Fetch latest version from APT repo
+        id: latest
+        run: |
+          APT_BASE="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
+          PACKAGES_URL="$APT_BASE/dists/next/main/binary-amd64/Packages"
+          
+          packages_content=$(curl -sL "$PACKAGES_URL")
+          
+          apt_version=$(echo "$packages_content" | grep -m1 "^Version:" | cut -d' ' -f2)
+          sha256=$(echo "$packages_content" | grep -m1 "^SHA256:" | cut -d' ' -f2)
+          
+          # Convert to Arch version format
+          # APT: 1.12.157+next.10ebfa84f4-1764862834
+          # Arch: 1.12.157_next.10ebfa84f4
+          arch_version=$(echo "$apt_version" | sed 's/+/_/g; s/-[0-9]*$//')
+          
+          echo "apt_version=$apt_version" >> $GITHUB_OUTPUT
+          echo "arch_version=$arch_version" >> $GITHUB_OUTPUT
+          echo "sha256=$sha256" >> $GITHUB_OUTPUT
+      
+      - name: Compare versions
+        id: check
+        run: |
+          current="${{ steps.current.outputs.version }}"
+          latest="${{ steps.latest.outputs.arch_version }}"
+          
+          echo "Current version: $current"
+          echo "Latest version: $latest"
+          
+          if [[ "$current" != "$latest" ]]; then
+            echo "has_update=true" >> $GITHUB_OUTPUT
+            echo "new_version=$latest" >> $GITHUB_OUTPUT
+            echo "sha256=${{ steps.latest.outputs.sha256 }}" >> $GITHUB_OUTPUT
+            echo "Update available: $current -> $latest" >> $GITHUB_STDOUT
+          else
+            echo "has_update=false" >> $GITHUB_OUTPUT
+            echo "No update available" >> $GITHUB_STDOUT
+          fi
+  
+  update:
+    needs: check
+    if: needs.check.outputs.has_update == 'true'
+    uses: ./.github/workflows/update-pkgbuild.yml
+    with:
+      version: ${{ needs.check.outputs.new_version }}
+      sha256: ${{ needs.check.outputs.sha256 }}
+    secrets: inherit
