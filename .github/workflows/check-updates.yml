@@ -57,10 +57,10 @@ jobs:
             echo "has_update=true" >> $GITHUB_OUTPUT
             echo "new_version=$latest" >> $GITHUB_OUTPUT
             echo "sha256=${{ steps.latest.outputs.sha256 }}" >> $GITHUB_OUTPUT
-            echo "Update available: $current -> $latest" >> $GITHUB_STDOUT
+            echo "Update available: $current -> $latest"
           else
             echo "has_update=false" >> $GITHUB_OUTPUT
-            echo "No update available" >> $GITHUB_STDOUT
+            echo "No update available"
           fi
   
   update:
