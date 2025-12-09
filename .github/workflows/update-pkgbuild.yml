@@ -40,19 +40,20 @@ jobs:
         run: |
           NEW_VERSION="${{ inputs.version }}"
           NEW_SHA256="${{ inputs.sha256 }}"
-          
+
           echo "Updating PKGBUILD to version $NEW_VERSION"
-          
-          # Update pkgver
+
+          # Source existing PKGBUILD to read current sha256sums array.
+          # Expected order: [0] deb, [1] desktop, [2] URL handler.
+          # This preserves whatever you have there (hash or SKIP).
+          source PKGBUILD
+          desktop_sha="${sha256sums[1]}"
+          handler_sha="${sha256sums[2]}"
+
+          # Update pkgver and reset pkgrel
           sed -i "s/^pkgver=.*/pkgver=$NEW_VERSION/" PKGBUILD
-          
-          # Reset pkgrel to 1
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          
-          # Get the desktop file checksums (keep them unchanged)
-          desktop_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -2 | head -1 | tr -d " '")
-          handler_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -1 | tr -d " '") 
-          
+
           # Rebuild sha256sums array with new deb checksum
           cat > PKGBUILD.tmp << EOF
           pkgname=windsurf-next
