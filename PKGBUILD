@@ -35,7 +35,7 @@ source=(
 
 sha256sums=('16eb290214f7809c4042247528d779f167068aed12d95dde9cd070fda7eaaabc'
             '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-            'SKIP')
+            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2')
 
 prepare() {
     cd "$srcdir"
