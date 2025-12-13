@@ -1,5 +1,5 @@
 pkgname=windsurf-next
-pkgver=1.12.161_next.8b6a7c68fb
+pkgver=1.12.162_next.f93b1c92ec
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
@@ -33,7 +33,7 @@ source=(
     'windsurf-next-url-handler.desktop'
 )
 
-sha256sums=('6a7057024a6e38c5561175938afe60f17614188fdbe2157f2f8b6536e463f5e1'
+sha256sums=('ddd591ae1f88199136837f4583445bc9e15f33be1e57ea71b56f16ba923641d0'
             '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
             '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2')
 
