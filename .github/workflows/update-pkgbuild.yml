@@ -40,49 +40,7 @@ jobs:
         run: bash .github/scripts/update-pkgbuild.sh "${{ inputs.version }}" "${{ inputs.sha256 }}"
       
       - name: Generate .SRCINFO
-        run: |
-          echo "Generating .SRCINFO..."
-          source PKGBUILD
-          
-          cat > .SRCINFO << EOF
-pkgbase = $pkgname
-	pkgdesc = $pkgdesc
-	pkgver = $pkgver
-	pkgrel = $pkgrel
-	url = $url
-	arch = ${arch[0]}
-	license = $license
-EOF
-          
-          for dep in "${makedepends[@]}"; do
-            echo "	makedepends = $dep" >> .SRCINFO
-          done
-          
-          for dep in "${depends[@]}"; do
-            echo "	depends = $dep" >> .SRCINFO
-          done
-          
-          for dep in "${optdepends[@]}"; do
-            echo "	optdepends = $dep" >> .SRCINFO
-          done
-          
-          echo "	provides = ${provides[0]}" >> .SRCINFO
-          echo "	conflicts = ${conflicts[0]}" >> .SRCINFO
-          echo "	options = ${options[0]}" >> .SRCINFO
-          
-          for src in "${source[@]}"; do
-            echo "	source = $src" >> .SRCINFO
-          done
-          
-          for sum in "${sha256sums[@]}"; do
-            echo "	sha256sums = $sum" >> .SRCINFO
-          done
-          
-          echo "" >> .SRCINFO
-          echo "pkgname = $pkgname" >> .SRCINFO
-          
-          echo ".SRCINFO generated"
-          cat .SRCINFO
+        run: bash .github/scripts/generate-srcinfo.sh
       
       - name: Verify PKGBUILD
         run: |
