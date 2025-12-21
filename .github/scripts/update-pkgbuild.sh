@@ -16,12 +16,10 @@ fi
 
 echo "Updating PKGBUILD to version $NEW_VERSION"
 
-# Backup the original
-cp "$PKGBUILD_FILE" "${PKGBUILD_FILE}.bak"
-
 # Extract desktop file checksums (keep them unchanged)
-desktop_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -2 | head -1 | tr -d " '")
-handler_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -1 | tr -d " '")
+# Remove spaces, quotes, and trailing parenthesis
+desktop_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -2 | head -1 | tr -d " ')")
+handler_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -1 | tr -d " ')")
 
 # Generate new PKGBUILD with embedded content
 cat > "$PKGBUILD_FILE" << EOF
@@ -129,6 +127,3 @@ package() {
 EOF
 
 echo "Updated PKGBUILD to version $NEW_VERSION"
-
-# Clean up backup
-rm "${PKGBUILD_FILE}.bak"

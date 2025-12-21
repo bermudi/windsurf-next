@@ -36,129 +36,23 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Update PKGBUILD
-        run: |
-          NEW_VERSION="${{ inputs.version }}"
-          NEW_SHA256="${{ inputs.sha256 }}"
-
-          echo "Updating PKGBUILD to version $NEW_VERSION"
-
-          # Source existing PKGBUILD to read current sha256sums array.
-          # Expected order: [0] deb, [1] desktop, [2] URL handler.
-          # This preserves whatever you have there (hash or SKIP).
-          source PKGBUILD
-          desktop_sha="${sha256sums[1]}"
-          handler_sha="${sha256sums[2]}"
-
-          # Update pkgver and reset pkgrel
-          sed -i "s/^pkgver=.*/pkgver=$NEW_VERSION/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-
-          # Rebuild sha256sums array with new deb checksum
-          cat > PKGBUILD.tmp << EOF
-          pkgname=windsurf-next
-          pkgver=$NEW_VERSION
-          pkgrel=1
-          pkgdesc="Windsurf-next - Next version of the Windsurf editor"
-          arch=('x86_64')
-          url="https://windsurf.com"
-          license=('custom')
-          
-          _apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
-          _upstream_ver="\${pkgver//_/+}"
-          _debfile="Windsurf-linux-x64-\${_upstream_ver}.deb"
-          
-          depends=(
-              'vulkan-driver'
-              'ffmpeg'
-              'glibc'
-              'libglvnd'
-              'gtk3'
-              'alsa-lib'
-          )
-          makedepends=('curl')
-          optdepends=(
-              'bash-completion: for bash shell completions'
-              'zsh: for zsh shell completions'
-          )
-          provides=("windsurf-next")
-          conflicts=("windsurf-next")
-          options=('!strip')
-          
-          source=(
-              "windsurf-next-\${pkgver}.deb::\${_apt_base}/pool/main/w/windsurf-next/\${_debfile}"
-              'windsurf-next.desktop'
-              'windsurf-next-url-handler.desktop'
-          )
-          
-          sha256sums=('$NEW_SHA256'
-                      '$desktop_sha'
-                      '$handler_sha')
-          
-          prepare() {
-              cd "\$srcdir"
-              mkdir -p deb-extract
-              cd deb-extract
-              ar x "../windsurf-next-\${pkgver}.deb"
-              
-              mkdir -p data
-              if [[ -f data.tar.xz ]]; then
-                  tar -xf data.tar.xz -C data
-              elif [[ -f data.tar.zst ]]; then
-                  tar -xf data.tar.zst -C data
-              elif [[ -f data.tar.gz ]]; then
-                  tar -xf data.tar.gz -C data
-              fi
-          }
-          
-          package() {
-              cd "\$srcdir/deb-extract/data"
-              
-              install -dm755 "\$pkgdir/opt/windsurf-next"
-              cp -r usr/share/windsurf-next/* "\$pkgdir/opt/windsurf-next/"
-              
-              install -dm755 "\$pkgdir/usr/bin"
-              ln -sf "/opt/windsurf-next/windsurf-next" "\$pkgdir/usr/bin/windsurf-next"
-          
-              install -Dm644 "\$srcdir/windsurf-next.desktop" "\$pkgdir/usr/share/applications/windsurf-next.desktop"
-              install -Dm644 "\$srcdir/windsurf-next-url-handler.desktop" "\$pkgdir/usr/share/applications/windsurf-next-url-handler.desktop"
-          
-              if [[ -f "\$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" ]]; then
-                  install -Dm644 "\$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" \\
-                      "\$pkgdir/usr/share/bash-completion/completions/windsurf-next"
-              fi
-          
-              if [[ -f "\$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" ]]; then
-                  install -Dm644 "\$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" \\
-                      "\$pkgdir/usr/share/zsh/site-functions/_windsurf-next"
-              fi
-          
-              install -Dm644 "\$pkgdir/opt/windsurf-next/resources/app/resources/linux/code-next.png" \\
-                  "\$pkgdir/usr/share/pixmaps/windsurf-next.png"
-          
-              chmod 755 "\$pkgdir/opt/windsurf-next/windsurf-next"
-              chmod 4755 "\$pkgdir/opt/windsurf-next/chrome-sandbox"
-          }
-          EOF
-          
-          mv PKGBUILD.tmp PKGBUILD
-          echo "PKGBUILD updated successfully"
+      - name: Update PKGBUILD using helper script
+        run: bash .github/scripts/update-pkgbuild.sh "${{ inputs.version }}" "${{ inputs.sha256 }}"
       
       - name: Generate .SRCINFO
         run: |
           echo "Generating .SRCINFO..."
-          
           source PKGBUILD
           
           cat > .SRCINFO << EOF
-          pkgbase = $pkgname
-          pkgdesc = $pkgdesc
-          pkgver = $pkgver
-          pkgrel = $pkgrel
-          url = $url
-          arch = ${arch[0]}
-          license = $license
-          EOF
+pkgbase = $pkgname
+	pkgdesc = $pkgdesc
+	pkgver = $pkgver
+	pkgrel = $pkgrel
+	url = $url
+	arch = ${arch[0]}
+	license = $license
+EOF
           
           for dep in "${makedepends[@]}"; do
             echo "	makedepends = $dep" >> .SRCINFO
@@ -192,7 +86,6 @@ jobs:
       
       - name: Verify PKGBUILD
         run: |
-          # Basic syntax check
           if bash -n PKGBUILD; then
             echo "PKGBUILD syntax is valid"
           else
@@ -230,3 +123,46 @@ jobs:
             See the main AUR package page for installation instructions.
           draft: false
           prerelease: false
+
+      - name: Push updated files to AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          PACKAGE_NAME: windsurf-next
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ -z "${AUR_SSH_PRIVATE_KEY:-}" ]]; then
+            echo "AUR_SSH_PRIVATE_KEY secret not configured; skipping AUR push."
+            exit 0
+          fi
+
+          install -m 700 -d ~/.ssh
+          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/id_aur
+          chmod 600 ~/.ssh/id_aur
+          cat <<'EOF' > ~/.ssh/config
+          Host aur.archlinux.org
+            User aur
+            IdentityFile ~/.ssh/id_aur
+            StrictHostKeyChecking accept-new
+          EOF
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+          git clone "ssh://aur@aur.archlinux.org/${PACKAGE_NAME}.git" aur-repo
+
+          pushd aur-repo
+          # Remove everything except .git
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          # Copy fresh files from main repo
+          cp ../PKGBUILD ../.SRCINFO ../windsurf-next.desktop ../windsurf-next-url-handler.desktop .
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PKGBUILD .SRCINFO windsurf-next.desktop windsurf-next-url-handler.desktop
+
+          if git diff --cached --quiet; then
+            echo "AUR repository already up to date; nothing to push."
+            exit 0
+          fi
+
+          git commit -m "Update to version ${VERSION}"
+          git push origin HEAD:master
+          popd
