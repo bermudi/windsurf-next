@@ -1,13 +1,19 @@
+# Maintainer: Webarch <contact@webarch.ro>
+# Auto-updated by GitHub Actions
+
 pkgname=windsurf-next
-pkgver=1.12.165_next.8951cd3ad6
+pkgver=1.12.166_next.dd0f8c54d2
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://windsurf.com"
 license=('custom')
 
+# APT repository configuration
 _apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
+# Upstream version format: 1.12.157+next.10ebfa84f4 (from Packages file)
 _upstream_ver="${pkgver//_/+}"
+# Deb filename from APT pool
 _debfile="Windsurf-linux-x64-${_upstream_ver}.deb"
 
 depends=(
@@ -28,22 +34,26 @@ conflicts=("windsurf-next")
 options=('!strip')
 
 source=(
-    "windsurf-next-${pkgver}.deb::${_apt_base}/pool/main/w/windsurf-next/${_debfile}"
+    "${pkgname}-${pkgver}.deb::${_apt_base}/pool/main/w/windsurf-next/${_debfile}"
     'windsurf-next.desktop'
     'windsurf-next-url-handler.desktop'
 )
 
-sha256sums=('ea958db176c4471acd79c1fb8259392798d19f44d36fdb9cd1bf5778309feef7'
-            '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2')
+sha256sums=('d74f49daea24a344dfe60c5887a3622109d7caf1fc5eccfd6f4be475de88cdc0'
+            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
+            '')
 
 prepare() {
     cd "$srcdir"
+    
+    # Extract the .deb file (ar archive)
     mkdir -p deb-extract
     cd deb-extract
-    ar x "../windsurf-next-${pkgver}.deb"
+    ar x "../${pkgname}-${pkgver}.deb"
     
+    # Extract the data archive (contains the actual files)
     mkdir -p data
+    # Handle both .tar.xz and .tar.zst formats
     if [[ -f data.tar.xz ]]; then
         tar -xf data.tar.xz -C data
     elif [[ -f data.tar.zst ]]; then
@@ -56,28 +66,36 @@ prepare() {
 package() {
     cd "$srcdir/deb-extract/data"
     
-    install -dm755 "$pkgdir/opt/windsurf-next"
-    cp -r usr/share/windsurf-next/* "$pkgdir/opt/windsurf-next/"
+    # The deb extracts to usr/share/windsurf-next/
+    # Copy all files to /opt for consistency with current package
+    install -dm755 "$pkgdir/opt/$pkgname"
+    cp -r usr/share/windsurf-next/* "$pkgdir/opt/$pkgname/"
     
+    # Create symlink for the executable
     install -dm755 "$pkgdir/usr/bin"
-    ln -sf "/opt/windsurf-next/windsurf-next" "$pkgdir/usr/bin/windsurf-next"
+    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
-    install -Dm644 "$srcdir/windsurf-next.desktop" "$pkgdir/usr/share/applications/windsurf-next.desktop"
-    install -Dm644 "$srcdir/windsurf-next-url-handler.desktop" "$pkgdir/usr/share/applications/windsurf-next-url-handler.desktop"
+    # Install the desktop entry files
+    install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
+    install -Dm644 "$srcdir/$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
-    if [[ -f "$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" ]]; then
-        install -Dm644 "$pkgdir/opt/windsurf-next/resources/completions/bash/windsurf-next" \
-            "$pkgdir/usr/share/bash-completion/completions/windsurf-next"
+    # Install bash completion
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
+            "$pkgdir/usr/share/bash-completion/completions/$pkgname"
     fi
-
-    if [[ -f "$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" ]]; then
-        install -Dm644 "$pkgdir/opt/windsurf-next/resources/completions/zsh/_windsurf-next" \
-            "$pkgdir/usr/share/zsh/site-functions/_windsurf-next"
+    
+    # Install zsh completion
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
+            "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
     fi
-
-    install -Dm644 "$pkgdir/opt/windsurf-next/resources/app/resources/linux/code-next.png" \
-        "$pkgdir/usr/share/pixmaps/windsurf-next.png"
-
-    chmod 755 "$pkgdir/opt/windsurf-next/windsurf-next"
-    chmod 4755 "$pkgdir/opt/windsurf-next/chrome-sandbox"
+    
+    # Install icon
+    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+        "$pkgdir/usr/share/pixmaps/$pkgname.png"
+    
+    # Fix permissions
+    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
+    chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
 }
