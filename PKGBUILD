@@ -40,8 +40,8 @@ source=(
 )
 
 sha256sums=('97f7b2310e4b6c97ffaec8b7c6bbc449d8e717aa3d25b97b9293dcb8f35b5f31'
-            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
-            '')
+            '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
+            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2')
 
 prepare() {
     cd "$srcdir"
