@@ -39,18 +39,19 @@ source=(
     'windsurf-next-url-handler.desktop'
 )
 
-sha256sums=('8bf01332264eecae302c3ced31e56e3a763097a97f02763c28de294b57d0f746'
-            '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-            '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
+sha256sums=(
+    '8bf01332264eecae302c3ced31e56e3a763097a97f02763c28de294b57d0f746'
+    '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
+    '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
 )
 
 prepare() {
-    cd "\$srcdir"
+    cd "$srcdir"
     
     # Extract the .deb file (ar archive)
     mkdir -p deb-extract
     cd deb-extract
-    ar x "../\${pkgname}-\${pkgver}.deb"
+    ar x "../${pkgname}-${pkgver}.deb"
     
     # Extract the data archive (contains the actual files)
     mkdir -p data
@@ -65,38 +66,38 @@ prepare() {
 }
 
 package() {
-    cd "\$srcdir/deb-extract/data"
+    cd "$srcdir/deb-extract/data"
     
     # The deb extracts to usr/share/windsurf-next/
     # Copy all files to /opt for consistency with current package
-    install -dm755 "\$pkgdir/opt/\$pkgname"
-    cp -r usr/share/windsurf-next/* "\$pkgdir/opt/\$pkgname/"
+    install -dm755 "$pkgdir/opt/$pkgname"
+    cp -r usr/share/windsurf-next/* "$pkgdir/opt/$pkgname/"
     
     # Create symlink for the executable
-    install -dm755 "\$pkgdir/usr/bin"
-    ln -sf "/opt/\$pkgname/\$pkgname" "\$pkgdir/usr/bin/\$pkgname"
+    install -dm755 "$pkgdir/usr/bin"
+    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
     # Install the desktop entry files
-    install -Dm644 "\$srcdir/\$pkgname.desktop" "\$pkgdir/usr/share/applications/\$pkgname.desktop"
-    install -Dm644 "\$srcdir/\$pkgname-url-handler.desktop" "\$pkgdir/usr/share/applications/\$pkgname-url-handler.desktop"
+    install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
+    install -Dm644 "$srcdir/$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
     # Install bash completion
-    if [[ -f "\$pkgdir/opt/\$pkgname/resources/completions/bash/\$pkgname" ]]; then
-        install -Dm644 "\$pkgdir/opt/\$pkgname/resources/completions/bash/\$pkgname" \\
-            "\$pkgdir/usr/share/bash-completion/completions/\$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
+            "$pkgdir/usr/share/bash-completion/completions/$pkgname"
     fi
     
     # Install zsh completion
-    if [[ -f "\$pkgdir/opt/\$pkgname/resources/completions/zsh/_\$pkgname" ]]; then
-        install -Dm644 "\$pkgdir/opt/\$pkgname/resources/completions/zsh/_\$pkgname" \\
-            "\$pkgdir/usr/share/zsh/site-functions/_\$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
+            "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
     fi
     
     # Install icon
-    install -Dm644 "\$pkgdir/opt/\$pkgname/resources/app/resources/linux/code-next.png" \\
-        "\$pkgdir/usr/share/pixmaps/\$pkgname.png"
+    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+        "$pkgdir/usr/share/pixmaps/$pkgname.png"
     
     # Fix permissions
-    chmod 755 "\$pkgdir/opt/\$pkgname/\$pkgname"
-    chmod 4755 "\$pkgdir/opt/\$pkgname/chrome-sandbox"
+    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
+    chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
 }

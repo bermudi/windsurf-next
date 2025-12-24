@@ -55,7 +55,7 @@ for idx in "${!existing_sources[@]}"; do
 done
 
 # Generate new PKGBUILD with embedded content
-cat > "$PKGBUILD_FILE" << EOF
+cat > "$PKGBUILD_FILE" <<EOF
 # Maintainer: Webarch <contact@webarch.ro>
 # Auto-updated by GitHub Actions
 
@@ -66,13 +66,16 @@ pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://windsurf.com"
 license=('custom')
+EOF
+
+cat >> "$PKGBUILD_FILE" <<'EOF'
 
 # APT repository configuration
 _apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
 # Upstream version format: 1.12.157+next.10ebfa84f4 (from Packages file)
-_upstream_ver="\${pkgver//_/+}"
+_upstream_ver="${pkgver//_/+}"
 # Deb filename from APT pool
-_debfile="Windsurf-linux-x64-\${_upstream_ver}.deb"
+_debfile="Windsurf-linux-x64-${_upstream_ver}.deb"
 
 depends=(
     'vulkan-driver'
@@ -92,7 +95,7 @@ conflicts=("windsurf-next")
 options=('!strip')
 
 source=(
-    "\${pkgname}-\${pkgver}.deb::\${_apt_base}/pool/main/w/windsurf-next/\${_debfile}"
+    "${pkgname}-${pkgver}.deb::${_apt_base}/pool/main/w/windsurf-next/${_debfile}"
 EOF
 
 if ((${#local_sources[@]} > 0)); then
@@ -101,15 +104,17 @@ if ((${#local_sources[@]} > 0)); then
     done
 fi
 
-cat >> "$PKGBUILD_FILE" <<EOF
+cat >> "$PKGBUILD_FILE" <<'EOF'
 )
 
-sha256sums=('$NEW_SHA256'
+sha256sums=(
 EOF
+
+printf "    '%s'\n" "$NEW_SHA256" >> "$PKGBUILD_FILE"
 
 if ((${#local_source_sums[@]} > 0)); then
     for sum in "${local_source_sums[@]}"; do
-        printf "            '%s'\n" "$sum" >> "$PKGBUILD_FILE"
+        printf "    '%s'\n" "$sum" >> "$PKGBUILD_FILE"
     done
 fi
 
@@ -117,12 +122,12 @@ cat >> "$PKGBUILD_FILE" <<'EOF'
 )
 
 prepare() {
-    cd "\$srcdir"
+    cd "$srcdir"
     
     # Extract the .deb file (ar archive)
     mkdir -p deb-extract
     cd deb-extract
-    ar x "../\${pkgname}-\${pkgver}.deb"
+    ar x "../${pkgname}-${pkgver}.deb"
     
     # Extract the data archive (contains the actual files)
     mkdir -p data
@@ -137,40 +142,40 @@ prepare() {
 }
 
 package() {
-    cd "\$srcdir/deb-extract/data"
+    cd "$srcdir/deb-extract/data"
     
     # The deb extracts to usr/share/windsurf-next/
     # Copy all files to /opt for consistency with current package
-    install -dm755 "\$pkgdir/opt/\$pkgname"
-    cp -r usr/share/windsurf-next/* "\$pkgdir/opt/\$pkgname/"
+    install -dm755 "$pkgdir/opt/$pkgname"
+    cp -r usr/share/windsurf-next/* "$pkgdir/opt/$pkgname/"
     
     # Create symlink for the executable
-    install -dm755 "\$pkgdir/usr/bin"
-    ln -sf "/opt/\$pkgname/\$pkgname" "\$pkgdir/usr/bin/\$pkgname"
+    install -dm755 "$pkgdir/usr/bin"
+    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
     # Install the desktop entry files
-    install -Dm644 "\$srcdir/\$pkgname.desktop" "\$pkgdir/usr/share/applications/\$pkgname.desktop"
-    install -Dm644 "\$srcdir/\$pkgname-url-handler.desktop" "\$pkgdir/usr/share/applications/\$pkgname-url-handler.desktop"
+    install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
+    install -Dm644 "$srcdir/$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
     # Install bash completion
-    if [[ -f "\$pkgdir/opt/\$pkgname/resources/completions/bash/\$pkgname" ]]; then
-        install -Dm644 "\$pkgdir/opt/\$pkgname/resources/completions/bash/\$pkgname" \\
-            "\$pkgdir/usr/share/bash-completion/completions/\$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
+            "$pkgdir/usr/share/bash-completion/completions/$pkgname"
     fi
     
     # Install zsh completion
-    if [[ -f "\$pkgdir/opt/\$pkgname/resources/completions/zsh/_\$pkgname" ]]; then
-        install -Dm644 "\$pkgdir/opt/\$pkgname/resources/completions/zsh/_\$pkgname" \\
-            "\$pkgdir/usr/share/zsh/site-functions/_\$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
+        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
+            "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
     fi
     
     # Install icon
-    install -Dm644 "\$pkgdir/opt/\$pkgname/resources/app/resources/linux/code-next.png" \\
-        "\$pkgdir/usr/share/pixmaps/\$pkgname.png"
+    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+        "$pkgdir/usr/share/pixmaps/$pkgname.png"
     
     # Fix permissions
-    chmod 755 "\$pkgdir/opt/\$pkgname/\$pkgname"
-    chmod 4755 "\$pkgdir/opt/\$pkgname/chrome-sandbox"
+    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
+    chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
 }
 EOF
 
