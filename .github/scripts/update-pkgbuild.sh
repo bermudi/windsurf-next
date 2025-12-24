@@ -16,10 +16,43 @@ fi
 
 echo "Updating PKGBUILD to version $NEW_VERSION"
 
-# Extract desktop file checksums (keep them unchanged)
-# Remove spaces, quotes, and trailing parenthesis
-desktop_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -2 | head -1 | tr -d " ')")
-handler_sha=$(grep -A3 "^sha256sums=" PKGBUILD | tail -1 | tr -d " ')")
+# Capture existing source entries so we can preserve hashes for local files
+# shellcheck source=PKGBUILD
+source "$PKGBUILD_FILE"
+
+if ! declare -p source >/dev/null 2>&1 || ! declare -p sha256sums >/dev/null 2>&1; then
+    echo "Error: PKGBUILD must define both source[] and sha256sums[] arrays"
+    exit 1
+fi
+
+declare -a existing_sources=("${source[@]}")
+declare -a existing_sha256sums=("${sha256sums[@]-}")
+
+declare -a local_sources=()
+declare -a local_source_sums=()
+
+for idx in "${!existing_sources[@]}"; do
+    entry="${existing_sources[$idx]}"
+    sum="${existing_sha256sums[$idx]:-}"
+
+    # Remove any "::" rename prefix before checking for local files
+    local_path="${entry##*::}"
+
+    if [[ -f "$local_path" ]]; then
+        local_sources+=("$entry")
+
+        if [[ -z "$sum" ]]; then
+            if [[ -f "$local_path" ]]; then
+                sum=$(sha256sum "$local_path" | awk '{print $1}')
+            else
+                echo "Warning: Local source '$local_path' no longer exists; skipping checksum preservation."
+                continue
+            fi
+        fi
+
+        local_source_sums+=("$sum")
+    fi
+done
 
 # Generate new PKGBUILD with embedded content
 cat > "$PKGBUILD_FILE" << EOF
@@ -60,13 +93,28 @@ options=('!strip')
 
 source=(
     "\${pkgname}-\${pkgver}.deb::\${_apt_base}/pool/main/w/windsurf-next/\${_debfile}"
-    'windsurf-next.desktop'
-    'windsurf-next-url-handler.desktop'
+EOF
+
+if ((${#local_sources[@]} > 0)); then
+    for entry in "${local_sources[@]}"; do
+        printf "    '%s'\n" "$entry" >> "$PKGBUILD_FILE"
+    done
+fi
+
+cat >> "$PKGBUILD_FILE" <<EOF
 )
 
 sha256sums=('$NEW_SHA256'
-            '$desktop_sha'
-            '$handler_sha')
+EOF
+
+if ((${#local_source_sums[@]} > 0)); then
+    for sum in "${local_source_sums[@]}"; do
+        printf "            '%s'\n" "$sum" >> "$PKGBUILD_FILE"
+    done
+fi
+
+cat >> "$PKGBUILD_FILE" <<'EOF'
+)
 
 prepare() {
     cd "\$srcdir"
