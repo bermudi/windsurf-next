@@ -2,7 +2,7 @@
 # Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=1.13.104_next.f5d6162bf2
+pkgver=1.13.106_next.97d7a9c6ff
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
@@ -40,7 +40,7 @@ source=(
 )
 
 sha256sums=(
-    '8bf01332264eecae302c3ced31e56e3a763097a97f02763c28de294b57d0f746'
+    'f7be10c68cb4e8e36d1e7be414d8ae5ce422467d81681b88e3e24f730cd203c8'
     '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
     '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
 )
