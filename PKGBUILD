@@ -4,7 +4,7 @@
 
 pkgname=windsurf-next
 pkgver=1.13.106_next.97d7a9c6ff
-pkgrel=1
+pkgrel=2
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
 url="https://windsurf.com"
@@ -24,6 +24,9 @@ depends=(
     'libglvnd'
     'gtk3'
     'alsa-lib'
+    'fd'
+    'ripgrep'
+    'xdg-utils'
 )
 
 makedepends=('curl')
@@ -69,39 +72,79 @@ prepare() {
 
 package() {
     cd "$srcdir/deb-extract/data"
-    
-    # The deb extracts to usr/share/windsurf-next/
-    # Copy all files to /opt for consistency with current package
-    install -dm755 "$pkgdir/opt/$pkgname"
-    cp -r usr/share/windsurf-next/* "$pkgdir/opt/$pkgname/"
-    
-    # Create symlink for the executable
+
+    local _appdir="$pkgdir/usr/lib/$pkgname"
+    local _resources="$_appdir/resources"
+
+    # Move bundled application into /usr/lib per Arch packaging norms
+    install -dm755 "$_appdir"
+    cp -a usr/share/windsurf-next/. "$_appdir/"
+
+    # Create launcher in PATH
     install -dm755 "$pkgdir/usr/bin"
-    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    ln -sf "../lib/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
     # Install the desktop entry files
     install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
     install -Dm644 "$srcdir/$pkgname-url-handler.desktop" "$pkgdir/usr/share/applications/$pkgname-url-handler.desktop"
 
+    # Install metainfo if provided (upstream uses appdata directory)
+    if [[ -d usr/share/appdata ]]; then
+        install -dm755 "$pkgdir/usr/share/metainfo"
+        for _xml in usr/share/appdata/*.xml; do
+            [[ -e "$_xml" ]] || continue
+            install -Dm644 "$_xml" "$pkgdir/usr/share/metainfo/$(basename "$_xml")"
+        done
+    fi
+    if [[ -d usr/share/metainfo ]]; then
+        install -dm755 "$pkgdir/usr/share/metainfo"
+        cp -a usr/share/metainfo/. "$pkgdir/usr/share/metainfo/"
+    fi
+
+    # Ship upstream license if present
+    local _license_dest="$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    if [[ -f usr/share/doc/$pkgname/copyright ]]; then
+        install -Dm644 "usr/share/doc/$pkgname/copyright" "$_license_dest"
+    elif [[ -f usr/share/doc/windsurf/copyright ]]; then
+        install -Dm644 "usr/share/doc/windsurf/copyright" "$_license_dest"
+    fi
+
     # Install bash completion
-    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" ]]; then
-        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
+    if [[ -f "$_resources/completions/bash/$pkgname" ]]; then
+        install -Dm644 "$_resources/completions/bash/$pkgname" \
             "$pkgdir/usr/share/bash-completion/completions/$pkgname"
     fi
     
     # Install zsh completion
-    if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
-        install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
+    if [[ -f "$_resources/completions/zsh/_$pkgname" ]]; then
+        install -Dm644 "$_resources/completions/zsh/_$pkgname" \
             "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
+    fi
+
+    # Replace bundled helper binaries with system versions
+    if [[ -d "$_resources/app/extensions/windsurf/bin" ]]; then
+        ln -sf "/usr/bin/fd" "$_resources/app/extensions/windsurf/bin/fd"
+    fi
+    if [[ -d "$_resources/app/node_modules/@vscode/ripgrep/bin" ]]; then
+        ln -sf "/usr/bin/rg" "$_resources/app/node_modules/@vscode/ripgrep/bin/rg"
+    fi
+    if [[ -d "$_resources/app/node_modules/open" ]]; then
+        ln -sf "/usr/bin/xdg-open" "$_resources/app/node_modules/open/xdg-open"
     fi
     
     # Install icons for desktop environments (hicolor + pixmaps fallback)
-    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+    install -Dm644 "$_resources/app/resources/linux/code-next.png" \
         "$pkgdir/usr/share/icons/hicolor/256x256/apps/$pkgname.png"
-    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
+    install -Dm644 "$_resources/app/resources/linux/code-next.png" \
         "$pkgdir/usr/share/pixmaps/$pkgname.png"
+
+    # Preserve SVG icon if present
+    if [[ -f "$_resources/app/out/media/code-iconsvg.svg" ]]; then
+        install -Dm644 "$_resources/app/out/media/code-iconsvg.svg" \
+            "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+    fi
     
     # Fix permissions
-    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
-    chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
+    chmod 755 "$_appdir/$pkgname"
+    chmod 4755 "$_appdir/chrome-sandbox"
 }

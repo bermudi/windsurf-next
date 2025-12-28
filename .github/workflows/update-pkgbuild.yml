@@ -36,10 +36,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sync with latest origin/master
+      - name: Sync with remote branch
         run: |
-          git fetch origin master
-          git reset --hard origin/master
+          git fetch origin "${GITHUB_REF_NAME}"
+          git reset --hard "origin/${GITHUB_REF_NAME}"
       
       - name: Update PKGBUILD using helper script
         run: bash .github/scripts/update-pkgbuild.sh "${{ inputs.version }}" "${{ inputs.sha256 }}"
@@ -61,73 +61,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add PKGBUILD .SRCINFO
-          git commit -m "chore: Update to version ${{ inputs.version }}"
-          git push
-      
-      - name: Create release tag
-        run: |
-          tag="v${{ inputs.version }}"
-          git tag -f "$tag"
-          git push origin ":refs/tags/$tag" || true
-          git push origin "$tag"
-      
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ inputs.version }}
-          name: "windsurf-next ${{ inputs.version }}"
-          body: |
-            Automated update to windsurf-next version ${{ inputs.version }}
-            
-            ## Changes
-            - Updated to latest version from APT repository
-            - SHA256: `${{ inputs.sha256 }}`
-            
-            ## Installation
-            See the main AUR package page for installation instructions.
-          draft: false
-          prerelease: false
-
-      - name: Push updated files to AUR
-        env:
-          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          PACKAGE_NAME: windsurf-next
-          VERSION: ${{ inputs.version }}
-        run: |
-          if [[ -z "${AUR_SSH_PRIVATE_KEY:-}" ]]; then
-            echo "AUR_SSH_PRIVATE_KEY secret not configured; skipping AUR push."
-            exit 0
-          fi
-
-          install -m 700 -d ~/.ssh
-          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/id_aur
-          chmod 600 ~/.ssh/id_aur
-          cat <<'EOF' > ~/.ssh/config
-          Host aur.archlinux.org
-            User aur
-            IdentityFile ~/.ssh/id_aur
-            StrictHostKeyChecking accept-new
-          EOF
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-
-          git clone "ssh://aur@aur.archlinux.org/${PACKAGE_NAME}.git" aur-repo
-
-          pushd aur-repo
-          # Remove everything except .git
-          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-          # Copy fresh files from main repo
-          cp ../PKGBUILD ../.SRCINFO ../windsurf-next.desktop ../windsurf-next-url-handler.desktop .
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add PKGBUILD .SRCINFO windsurf-next.desktop windsurf-next-url-handler.desktop
-
-          if git diff --cached --quiet; then
-            echo "AUR repository already up to date; nothing to push."
-            exit 0
-          fi
-
-          git commit -m "Update to version ${VERSION}"
-          git push origin HEAD:master
-          popd
+          git commit -m "chore: Update to version ${{ inputs.version }}" || echo "No changes to commit"
+          git push origin HEAD:"${GITHUB_REF_NAME}" || echo "No updates to push"
+      

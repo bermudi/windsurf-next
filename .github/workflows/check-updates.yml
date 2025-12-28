@@ -38,19 +38,16 @@ jobs:
           echo "arch_version=$arch_version" >> $GITHUB_OUTPUT
           echo "sha256=$sha256" >> $GITHUB_OUTPUT
       
-      - name: Fetch current version from AUR
-        id: aur
-        env:
-          AUR_REPO: https://aur.archlinux.org/windsurf-next.git
+      - name: Read current version from PKGBUILD
+        id: local
         run: |
-          git clone --depth 1 "$AUR_REPO" aur-current
-          aur_version=$(grep "^pkgver=" aur-current/PKGBUILD | cut -d'=' -f2)
-          echo "version=$aur_version" >> $GITHUB_OUTPUT
+          current=$(grep "^pkgver=" PKGBUILD | cut -d'=' -f2)
+          echo "version=$current" >> $GITHUB_OUTPUT
       
       - name: Compare versions
         id: check
         run: |
-          current="${{ steps.aur.outputs.version }}"
+          current="${{ steps.local.outputs.version }}"
           latest="${{ steps.latest.outputs.arch_version }}"
           
           echo "Current version: $current"
