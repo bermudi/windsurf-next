@@ -2,7 +2,7 @@
 # Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=1.13.106_next.97d7a9c6ff
+pkgver=1.13.107_next.4e724382d0
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
@@ -40,9 +40,9 @@ source=(
 )
 
 sha256sums=(
-    'f7be10c68cb4e8e36d1e7be414d8ae5ce422467d81681b88e3e24f730cd203c8'
-    '0561a3546b31291d43138b1f51e9696d889b37d0e88966c9bd32307d4536f91a'
-    '7bcdc177ae93096a04076ddf519b836dddf3a11a49e19bfca80f6bf5e60f91b2'
+    '7d1e654a24b89945a9394738161c8052a915ac25b5b7a1640e53c3f30b449d95'
+    '82f912789c91da072537934734771b557d310616f433591516b740342db0508f'
+    '884775875158639ccf975c991c5c8804b4b766df1eebc4f3a9ed8c47b2782f42'
 )
 
 prepare() {
@@ -101,4 +101,3 @@ package() {
     chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
     chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
 }
-

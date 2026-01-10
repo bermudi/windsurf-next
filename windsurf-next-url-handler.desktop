@@ -2,8 +2,8 @@
 Name=Windsurf Next - URL Handler
 Comment=Windsurf Editor (Next Version)
 GenericName=Text Editor
-Exec=/opt/windsurf-next/windsurf-next --open-url %U
-Icon=/opt/windsurf-next/resources/app/resources/linux/code-next.png
+Exec=/usr/bin/windsurf-next --open-url %U
+Icon=windsurf-next
 Type=Application
 NoDisplay=true
 StartupNotify=true
