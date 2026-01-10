@@ -1,9 +1,8 @@
 # Maintainer: Webarch <contact@webarch.ro>
-# Co-maintainer: bermudi <archlinux.i5beg@dabg.uk>
 # Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=1.13.106_next.97d7a9c6ff
+pkgver=1.13.107_next.4e724382d0
 pkgrel=1
 pkgdesc="Windsurf-next - Next version of the Windsurf editor"
 arch=('x86_64')
@@ -25,14 +24,13 @@ depends=(
     'gtk3'
     'alsa-lib'
 )
-
 makedepends=('curl')
-
 optdepends=(
     'bash-completion: for bash shell completions'
     'zsh: for zsh shell completions'
 )
-
+provides=("windsurf-next")
+conflicts=("windsurf-next")
 options=('!strip')
 
 source=(
@@ -42,7 +40,7 @@ source=(
 )
 
 sha256sums=(
-    'f7be10c68cb4e8e36d1e7be414d8ae5ce422467d81681b88e3e24f730cd203c8'
+    '7d1e654a24b89945a9394738161c8052a915ac25b5b7a1640e53c3f30b449d95'
     '82f912789c91da072537934734771b557d310616f433591516b740342db0508f'
     '884775875158639ccf975c991c5c8804b4b766df1eebc4f3a9ed8c47b2782f42'
 )
@@ -95,9 +93,7 @@ package() {
             "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
     fi
     
-    # Install icons for desktop environments (hicolor + pixmaps fallback)
-    install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
-        "$pkgdir/usr/share/icons/hicolor/256x256/apps/$pkgname.png"
+    # Install icon
     install -Dm644 "$pkgdir/opt/$pkgname/resources/app/resources/linux/code-next.png" \
         "$pkgdir/usr/share/pixmaps/$pkgname.png"
     
