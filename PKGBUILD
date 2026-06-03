@@ -94,7 +94,8 @@ package() {
     else
         # Binary has a different name (e.g. devin-desktop-next)
         local _bin
-        _bin=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -executable -not -name '*.so*' | head -1)
+        _bin=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -name 'devin-*' -executable | head -1)
+        : "${_bin:=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -name 'windsurf-*' -executable | head -1)}"
         _binname=$(basename "$_bin")
         if [[ -n "$_binname" ]]; then
             # Symlink in /opt so /opt/windsurf-next/windsurf-next works
