@@ -1,8 +1,8 @@
 pkgbase = windsurf-next
-	pkgdesc = Windsurf-next - Next version of the Windsurf editor
-	pkgver = 3.0.1017_next.2fb9b4e7df
+	pkgdesc = Devin Desktop (next channel) - formerly Windsurf Editor
+	pkgver = 3.0.1012_next.a335ac3d8c
 	pkgrel = 1
-	url = https://windsurf.com
+	url = https://docs.devin.ai
 	arch = x86_64
 	license = custom
 \tmakedepends = curl
@@ -17,11 +17,11 @@ pkgbase = windsurf-next
 \tprovides = windsurf-next
 \tconflicts = windsurf-next
 \toptions = !strip
-\tsource = windsurf-next-3.0.1017_next.2fb9b4e7df.deb::https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt/pool/main/w/windsurf-next/Windsurf-linux-x64-3.0.1017+next.2fb9b4e7df.deb
+\tsource = windsurf-next-3.0.1012_next.a335ac3d8c.deb::https://windsurf-stable.codeiumdata.com/linux-x64-deb/next/a335ac3d8c6b04d563d8bd757cadc86d305e3b12/Devin-linux-x64-3.0.1012+next.a335ac3d8c.deb
 \tsource = windsurf-next.desktop
 \tsource = windsurf-next-url-handler.desktop
-\tsha256sums = f153268fe14cd9a71bb866d1d099bf11758da60146d44a9c03babd97ce2c5c30
-\tsha256sums = 82f912789c91da072537934734771b557d310616f433591516b740342db0508f
-\tsha256sums = 884775875158639ccf975c991c5c8804b4b766df1eebc4f3a9ed8c47b2782f42
+\tsha256sums = a548d49146bd80e5ffc58e0fb81a6c0e2d0e4f1e0a45f5c390c5c368a9211f91
+\tsha256sums = f15127ef9ff42b2eddf5e0b476a27a0f65e3813de911c9154a577746b47e8188
+\tsha256sums = c2845c4efacb3eb7f0c5756ec9b2f68f3b24af11cc2db6965a4e5f4e744cf539
 
 pkgname = windsurf-next

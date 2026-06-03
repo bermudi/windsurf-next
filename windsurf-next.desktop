@@ -1,9 +1,17 @@
 [Desktop Entry]
-Name=Windsurf Next
-Comment=Windsurf Editor (Next Version)
-Exec=/usr/bin/windsurf-next %U
+Name=Devin Next
+Comment=Tomorrow's Editor, Today.
+Exec=/opt/windsurf-next/windsurf-next %F
 Icon=windsurf-next
-Terminal=false
 Type=Application
-Categories=Development;TextEditor;
-StartupWMClass=Windsurf - Next
+StartupNotify=false
+StartupWMClass=Devin - Next
+Categories=TextEditor;Development;IDE;
+MimeType=application/x-windsurf-next-workspace;
+Actions=new-empty-window;
+Keywords=vscode;
+
+[Desktop Action new-empty-window]
+Name=New Empty Window
+Exec=/opt/windsurf-next/windsurf-next --new-window %F
+Icon=windsurf-next
