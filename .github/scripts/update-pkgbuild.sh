@@ -1,13 +1,88 @@
+#!/bin/bash
+# Updates PKGBUILD with new version information
+# Usage: ./update-pkgbuild.sh <arch_version> <sha256> <apt_filename>
+
+set -euo pipefail
+
+NEW_VERSION="$1"
+NEW_SHA256="$2"
+NEW_FILENAME="$3"
+
+# Validate inputs
+if [[ ! "$NEW_VERSION" =~ ^[a-zA-Z0-9_.]+$ ]]; then
+    echo "Error: Invalid version format: $NEW_VERSION" >&2
+    exit 1
+fi
+if [[ ! "$NEW_SHA256" =~ ^[a-f0-9]{64}$ ]]; then
+    echo "Error: Invalid SHA256 format: $NEW_SHA256" >&2
+    exit 1
+fi
+if [[ ! "$NEW_FILENAME" =~ ^pool/main/[a-z]+/[a-z0-9-]+/[A-Za-z0-9._+\-]+\.deb$ ]]; then
+    echo "Error: Invalid filename format: $NEW_FILENAME" >&2
+    exit 1
+fi
+
+PKGBUILD_FILE="PKGBUILD"
+
+if [[ ! -f "$PKGBUILD_FILE" ]]; then
+    echo "Error: PKGBUILD not found"
+    exit 1
+fi
+
+echo "Updating PKGBUILD to version $NEW_VERSION"
+
+# Capture existing source entries so we can preserve hashes for local files
+# shellcheck source=PKGBUILD
+source "$PKGBUILD_FILE"
+
+if ! declare -p source >/dev/null 2>&1 || ! declare -p sha256sums >/dev/null 2>&1; then
+    echo "Error: PKGBUILD must define both source[] and sha256sums[] arrays"
+    exit 1
+fi
+
+declare -a existing_sources=("${source[@]}")
+declare -a existing_sha256sums=("${sha256sums[@]-}")
+
+declare -a local_sources=()
+declare -a local_source_sums=()
+
+for idx in "${!existing_sources[@]}"; do
+    entry="${existing_sources[$idx]}"
+    sum="${existing_sha256sums[$idx]:-}"
+
+    # Remove any "::" rename prefix before checking for local files
+    local_path="${entry##*::}"
+
+    if [[ -f "$local_path" ]]; then
+        local_sources+=("$entry")
+
+        if [[ -z "$sum" ]]; then
+            if [[ -f "$local_path" ]]; then
+                sum=$(sha256sum "$local_path" | awk '{print $1}')
+            else
+                echo "Warning: Local source '$local_path' no longer exists; skipping checksum preservation."
+                continue
+            fi
+        fi
+
+        local_source_sums+=("$sum")
+    fi
+done
+
+cat > "$PKGBUILD_FILE" <<EOF
 # Maintainer: Webarch <contact@webarch.ro>
 # Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=3.0.1017_next.2fb9b4e7df
+pkgver=$NEW_VERSION
 pkgrel=1
 pkgdesc="Devin Desktop (next channel) - formerly Windsurf Editor"
 arch=('x86_64')
 url="https://docs.devin.ai"
 license=('custom:Proprietary')
+EOF
+
+cat >> "$PKGBUILD_FILE" <<'EOF'
 
 # APT repository configuration
 _apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
@@ -32,15 +107,35 @@ conflicts=("windsurf-next")
 options=('!strip' '!debug')
 
 source=(
-    "${pkgname}-${pkgver}.deb::${_apt_base}/pool/main/d/devin-desktop-next/${_debfile}"
-    'windsurf-next.desktop'
-    'windsurf-next-url-handler.desktop'
+EOF
+
+# Extract the pool directory from the filename to handle future path changes
+_pool_dir=$(dirname "$NEW_FILENAME")
+cat >> "$PKGBUILD_FILE" <<EOF
+    "\${pkgname}-\${pkgver}.deb::\${_apt_base}/${_pool_dir}/\${_debfile}"
+EOF
+
+if ((${#local_sources[@]} > 0)); then
+    for entry in "${local_sources[@]}"; do
+        printf "    '%s'\n" "$entry" >> "$PKGBUILD_FILE"
+    done
+fi
+
+cat >> "$PKGBUILD_FILE" <<'EOF'
 )
 
 sha256sums=(
-    'f153268fe14cd9a71bb866d1d099bf11758da60146d44a9c03babd97ce2c5c30'
-    'f15127ef9ff42b2eddf5e0b476a27a0f65e3813de911c9154a577746b47e8188'
-    'c2845c4efacb3eb7f0c5756ec9b2f68f3b24af11cc2db6965a4e5f4e744cf539'
+EOF
+
+printf "    '%s'\n" "$NEW_SHA256" >> "$PKGBUILD_FILE"
+
+if ((${#local_source_sums[@]} > 0)); then
+    for sum in "${local_source_sums[@]}"; do
+        printf "    '%s'\n" "$sum" >> "$PKGBUILD_FILE"
+    done
+fi
+
+cat >> "$PKGBUILD_FILE" <<'PKGEOF'
 
 )
 
@@ -149,3 +244,6 @@ package() {
         chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
     fi
 }
+PKGEOF
+
+echo "Updated PKGBUILD to version $NEW_VERSION"
