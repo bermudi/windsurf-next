@@ -2,18 +2,15 @@
 # Auto-updated by GitHub Actions
 
 pkgname=windsurf-next
-pkgver=3.0.1012_next.a335ac3d8c
+pkgver=3.0.1017_next.2fb9b4e7df
 pkgrel=1
 pkgdesc="Devin Desktop (next channel) - formerly Windsurf Editor"
 arch=('x86_64')
 url="https://docs.devin.ai"
 license=('custom')
 
-# CDN download configuration
-# Source: https://docs.devin.ai/desktop/releases-next
-# The build hash is a 40-char identifier from the releases page, not derivable from version.
-_build_hash="a335ac3d8c6b04d563d8bd757cadc86d305e3b12"
-_cdn_base="https://windsurf-stable.codeiumdata.com/linux-x64-deb/next"
+# APT repository configuration
+_apt_base="https://windsurf-stable.codeiumdata.com/mQfcApCOdSLoWOSI/apt"
 _upstream_ver="${pkgver//_/+}"
 _debfile="Devin-linux-x64-${_upstream_ver}.deb"
 
@@ -35,25 +32,25 @@ conflicts=("windsurf-next")
 options=('!strip')
 
 source=(
-    "${pkgname}-${pkgver}.deb::${_cdn_base}/${_build_hash}/${_debfile}"
+    "${pkgname}-${pkgver}.deb::${_apt_base}/pool/main/d/devin-desktop-next/${_debfile}"
     'windsurf-next.desktop'
     'windsurf-next-url-handler.desktop'
 )
 
 sha256sums=(
-    'a548d49146bd80e5ffc58e0fb81a6c0e2d0e4f1e0a45f5c390c5c368a9211f91'
+    'f153268fe14cd9a71bb866d1d099bf11758da60146d44a9c03babd97ce2c5c30'
     'f15127ef9ff42b2eddf5e0b476a27a0f65e3813de911c9154a577746b47e8188'
     'c2845c4efacb3eb7f0c5756ec9b2f68f3b24af11cc2db6965a4e5f4e744cf539'
 )
 
 prepare() {
     cd "$srcdir"
-    
+
     # Extract the .deb file (ar archive)
     mkdir -p deb-extract
     cd deb-extract
     ar x "../${pkgname}-${pkgver}.deb"
-    
+
     # Extract the data archive (contains the actual files)
     mkdir -p data
     if [[ -f data.tar.xz ]]; then
@@ -67,11 +64,11 @@ prepare() {
 
 package() {
     cd "$srcdir/deb-extract/data"
-    
-    # The deb extracts to usr/share/{windsurf-next,devin-next}/
+
+    # The deb installs to usr/share/{devin-desktop-next,windsurf-next}/
     # Find the actual install directory
     local _installdir
-    for _candidate in "usr/share/windsurf-next" "usr/share/devin-desktop-next"; do
+    for _candidate in "usr/share/devin-desktop-next" "usr/share/windsurf-next"; do
         if [[ -d "$_candidate" ]]; then
             _installdir="$_candidate"
             break
@@ -85,7 +82,7 @@ package() {
     # Copy all files to /opt
     install -dm755 "$pkgdir/opt/$pkgname"
     cp -r "$_installdir"/* "$pkgdir/opt/$pkgname/"
-    
+
     # Create symlink for the executable
     # The binary may be named differently (devin-desktop-next vs windsurf-next)
     install -dm755 "$pkgdir/usr/bin"
@@ -114,13 +111,13 @@ package() {
         install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/bash/$pkgname" \
             "$pkgdir/usr/share/bash-completion/completions/$pkgname"
     fi
-    
+
     # Install zsh completion
     if [[ -f "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" ]]; then
         install -Dm644 "$pkgdir/opt/$pkgname/resources/completions/zsh/_$pkgname" \
             "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
     fi
-    
+
     # Install icon - try both old and new naming conventions
     local _icon
     for _icon in "code-next.png" "devin-next.png" "code.png"; do
@@ -130,9 +127,8 @@ package() {
             break
         fi
     done
-    
+
     # Fix permissions
-    # The main binary may not be named $pkgname
     local _main_bin
     for _main_bin in "$pkgdir/opt/$pkgname/$pkgname" "$pkgdir/opt/$pkgname/devin-desktop-next"; do
         if [[ -f "$_main_bin" ]]; then
