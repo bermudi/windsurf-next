@@ -92,11 +92,15 @@ package() {
     if [[ -f "$pkgdir/opt/$pkgname/$pkgname" ]]; then
         ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
     else
-        # Binary has a different name (e.g. devin-desktop-next) — create a $pkgname symlink
+        # Binary has a different name (e.g. devin-desktop-next)
         local _bin
-        _bin=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -executable | head -1)
-        if [[ -n "$_bin" ]]; then
-            ln -sf "/opt/$pkgname/$(basename "$_bin")" "$pkgdir/usr/bin/$pkgname"
+        _bin=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -executable -not -name '*.so*' | head -1)
+        _binname=$(basename "$_bin")
+        if [[ -n "$_binname" ]]; then
+            # Symlink in /opt so /opt/windsurf-next/windsurf-next works
+            ln -sf "$_binname" "$pkgdir/opt/$pkgname/$pkgname"
+            # Symlink in /usr/bin
+            ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
         fi
     fi
 
