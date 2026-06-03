@@ -87,8 +87,18 @@ package() {
     cp -r "$_installdir"/* "$pkgdir/opt/$pkgname/"
     
     # Create symlink for the executable
+    # The binary may be named differently (devin-desktop-next vs windsurf-next)
     install -dm755 "$pkgdir/usr/bin"
-    ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    if [[ -f "$pkgdir/opt/$pkgname/$pkgname" ]]; then
+        ln -sf "/opt/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    else
+        # Binary has a different name (e.g. devin-desktop-next) — create a $pkgname symlink
+        local _bin
+        _bin=$(find "$pkgdir/opt/$pkgname" -maxdepth 1 -type f -executable | head -1)
+        if [[ -n "$_bin" ]]; then
+            ln -sf "/opt/$pkgname/$(basename "$_bin")" "$pkgdir/usr/bin/$pkgname"
+        fi
+    fi
 
     # Install the desktop entry files
     install -Dm644 "$srcdir/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
@@ -117,7 +127,13 @@ package() {
     done
     
     # Fix permissions
-    chmod 755 "$pkgdir/opt/$pkgname/$pkgname"
+    # The main binary may not be named $pkgname
+    local _main_bin
+    for _main_bin in "$pkgdir/opt/$pkgname/$pkgname" "$pkgdir/opt/$pkgname/devin-desktop-next"; do
+        if [[ -f "$_main_bin" ]]; then
+            chmod 755 "$_main_bin"
+        fi
+    done
     if [[ -f "$pkgdir/opt/$pkgname/chrome-sandbox" ]]; then
         chmod 4755 "$pkgdir/opt/$pkgname/chrome-sandbox"
     fi
