@@ -71,7 +71,7 @@ package() {
     # The deb extracts to usr/share/{windsurf-next,devin-next}/
     # Find the actual install directory
     local _installdir
-    for _candidate in "usr/share/devin-next" "usr/share/windsurf-next"; do
+    for _candidate in "usr/share/windsurf-next" "usr/share/devin-desktop-next"; do
         if [[ -d "$_candidate" ]]; then
             _installdir="$_candidate"
             break
